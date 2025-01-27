@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  unifi-dns-manager:
+    build: .
+    container_name: unifi-dns-manager
+    ports:
+      - "52638:52638"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    environment:
+      - TZ=UTC  # Set your timezone here
