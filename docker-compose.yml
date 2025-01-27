@@ -1,13 +1,30 @@
-version: '3.8'
-
 services:
   unifi-dns-manager:
-    build: .
+    build: 
+      context: .
+      args:
+        VERSION: ${VERSION:-dev}
+        COMMIT: ${COMMIT:-unknown}
     container_name: unifi-dns-manager
     ports:
-      - "52638:52638"
+      - "${PORT:-52638}:52638"
     volumes:
-      - ./data:/app/data
+      - data:/app/data
     restart: unless-stopped
     environment:
-      - TZ=UTC  # Set your timezone here
+      - TZ=${TZ:-UTC}
+      - DEBUG=${DEBUG:-false}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:52638/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    labels:
+      - "com.docker.compose.project=unifi-dns-manager"
+      - "com.docker.compose.service=app"
+      - "maintainer=openhands@all-hands.dev"
+
+volumes:
+  data:
+    name: unifi-dns-sync_data
