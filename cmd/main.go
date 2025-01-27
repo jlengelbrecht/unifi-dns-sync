@@ -8,8 +8,8 @@ import (
     "os"
     "path/filepath"
 
-    "unifi-dns-sync/internal/handlers"
-    "unifi-dns-sync/internal/store"
+    "github.com/jlengelbrecht/unifi-dns-sync/internal/handlers"
+    "github.com/jlengelbrecht/unifi-dns-sync/internal/store"
 )
 
 func main() {
