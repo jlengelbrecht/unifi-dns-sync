@@ -12,20 +12,36 @@ import (
     "github.com/jlengelbrecht/unifi-dns-sync/internal/store"
 )
 
+var (
+    Version = "dev"
+    Commit  = "unknown"
+)
+
 func main() {
     var (
         port       = flag.Int("port", 52638, "Port to run the server on")
         dataDir    = flag.String("data-dir", "data", "Directory for data storage")
+        debug      = flag.Bool("debug", false, "Enable debug logging")
     )
     flag.Parse()
 
-    // Ensure data directory exists
-    if err := os.MkdirAll(*dataDir, 0755); err != nil {
+    // Configure logging
+    if *debug {
+        log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Llongfile)
+    } else {
+        log.SetFlags(log.Ldate | log.Ltime)
+    }
+
+    log.Printf("Starting Unifi DNS Manager %s (%s)", Version, Commit)
+
+    // Ensure data directory exists with correct permissions
+    dataPath := filepath.Join(*dataDir)
+    if err := os.MkdirAll(dataPath, 0777); err != nil {
         log.Fatalf("Failed to create data directory: %v", err)
     }
 
     // Initialize database
-    dbPath := filepath.Join(*dataDir, "unifi-dns.db")
+    dbPath := filepath.Join(dataPath, "unifi-dns.db")
     store, err := store.NewStore(dbPath)
     if err != nil {
         log.Fatalf("Failed to initialize database: %v", err)
@@ -77,6 +93,12 @@ func main() {
         handlers.JSONMiddleware,
         handlers.CORSMiddleware,
     ))
+
+    // Health check endpoint
+    http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set("Content-Type", "application/json")
+        w.Write([]byte(`{"status":"ok","version":"` + Version + `","commit":"` + Commit + `"}`))
+    })
 
     // Start server
     addr := fmt.Sprintf("0.0.0.0:%d", *port)
