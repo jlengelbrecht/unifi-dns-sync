@@ -34,7 +34,7 @@ COPY web/templates ./web/templates
 # Create data directory and set permissions
 RUN mkdir -p /app/data && \
     chown -R app:app /app && \
-    chmod 755 /app/data
+    chmod 777 /app/data
 
 # Switch to non-root user
 USER app

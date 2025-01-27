@@ -19,13 +19,14 @@ func main() {
     )
     flag.Parse()
 
-    // Ensure data directory exists
-    if err := os.MkdirAll(*dataDir, 0755); err != nil {
+    // Ensure data directory exists with correct permissions
+    dataPath := filepath.Join(*dataDir)
+    if err := os.MkdirAll(dataPath, 0777); err != nil {
         log.Fatalf("Failed to create data directory: %v", err)
     }
 
     // Initialize database
-    dbPath := filepath.Join(*dataDir, "unifi-dns.db")
+    dbPath := filepath.Join(dataPath, "unifi-dns.db")
     store, err := store.NewStore(dbPath)
     if err != nil {
         log.Fatalf("Failed to initialize database: %v", err)
