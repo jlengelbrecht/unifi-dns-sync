@@ -78,6 +78,12 @@ func main() {
         handlers.CORSMiddleware,
     ))
 
+    // Health check endpoint
+    http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+        w.WriteHeader(http.StatusOK)
+        w.Write([]byte("OK"))
+    })
+
     // Start server
     addr := fmt.Sprintf("0.0.0.0:%d", *port)
     log.Printf("Starting server on %s", addr)
