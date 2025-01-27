@@ -8,7 +8,7 @@ import (
     _ "github.com/mattn/go-sqlite3"
     "golang.org/x/crypto/bcrypt"
 
-    "unifi-dns-sync/internal/models"
+    "github.com/jlengelbrecht/unifi-dns-sync/internal/models"
 )
 
 var (

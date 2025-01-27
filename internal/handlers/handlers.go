@@ -8,9 +8,9 @@ import (
 
     "github.com/google/uuid"
 
-    "unifi-dns-sync/internal/api"
-    "unifi-dns-sync/internal/models"
-    "unifi-dns-sync/internal/store"
+    "github.com/jlengelbrecht/unifi-dns-sync/internal/api"
+    "github.com/jlengelbrecht/unifi-dns-sync/internal/models"
+    "github.com/jlengelbrecht/unifi-dns-sync/internal/store"
 )
 
 type Handler struct {
