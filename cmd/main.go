@@ -1,6 +1,7 @@
 package main
 
 import (
+    "encoding/json"
     "flag"
     "fmt"
     "log"
@@ -95,10 +96,21 @@ func main() {
     ))
 
     // Health check endpoint
-    http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-        w.Header().Set("Content-Type", "application/json")
-        w.Write([]byte(`{"status":"ok","version":"` + Version + `","commit":"` + Commit + `"}`))
-    })
+    http.HandleFunc("/health", handlers.Chain(
+        func(w http.ResponseWriter, r *http.Request) {
+            w.Header().Set("Content-Type", "application/json")
+            response := map[string]string{
+                "status":  "ok",
+                "version": Version,
+                "commit":  Commit,
+            }
+            json.NewEncoder(w).Encode(response)
+        },
+        handlers.LoggingMiddleware,
+        handlers.RecoveryMiddleware,
+        handlers.JSONMiddleware,
+        handlers.CORSMiddleware,
+    ))
 
     // Start server
     addr := fmt.Sprintf("0.0.0.0:%d", *port)
