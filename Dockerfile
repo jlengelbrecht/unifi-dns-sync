@@ -27,14 +27,14 @@ RUN apk add --no-cache ca-certificates sqlite-libs tzdata curl
 # Create non-root user
 RUN addgroup -S app && adduser -S app -G app
 
-# Copy binary and assets from builder
-COPY --from=builder /app/unifi-dns-manager .
-COPY web/templates ./web/templates
-
 # Create data directory and set permissions
 RUN mkdir -p /app/data && \
     chown -R app:app /app && \
-    chmod 777 /app/data
+    chmod -R 777 /app/data
+
+# Copy binary and assets from builder
+COPY --from=builder /app/unifi-dns-manager .
+COPY web/templates ./web/templates
 
 # Switch to non-root user
 USER app
