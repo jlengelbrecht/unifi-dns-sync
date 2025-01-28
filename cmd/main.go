@@ -1,6 +1,7 @@
 package main
 
 import (
+    "encoding/json"
     "flag"
     "fmt"
     "log"
@@ -54,6 +55,17 @@ func main() {
         log.Fatalf("Failed to initialize handler: %v", err)
     }
 
+    // Health check endpoint (must be first to avoid middleware issues)
+    http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusOK)
+        json.NewEncoder(w).Encode(map[string]string{
+            "status":  "ok",
+            "version": Version,
+            "commit":  Commit,
+        })
+    })
+
     // Set up routes with middleware
     http.HandleFunc("/", handlers.Chain(h.Index,
         handlers.LoggingMiddleware,
@@ -93,12 +105,6 @@ func main() {
         handlers.JSONMiddleware,
         handlers.CORSMiddleware,
     ))
-
-    // Health check endpoint
-    http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-        w.Header().Set("Content-Type", "application/json")
-        w.Write([]byte(`{"status":"ok","version":"` + Version + `","commit":"` + Commit + `"}`))
-    })
 
     // Start server
     addr := fmt.Sprintf("0.0.0.0:%d", *port)
