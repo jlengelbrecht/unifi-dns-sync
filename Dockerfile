@@ -1,4 +1,4 @@
-FROM golang:1.21-alpine AS builder
+FROM golang:1.22-alpine AS builder
 
 WORKDIR /app
 
@@ -52,7 +52,7 @@ ENV TZ=UTC \
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:${PORT}/health || exit 1
+    CMD wget -qO- http://localhost:${PORT}/health || exit 1
 
 # Run the application
 CMD ["./unifi-dns-manager", "-port", "52638", "-data-dir", "/app/data"]
