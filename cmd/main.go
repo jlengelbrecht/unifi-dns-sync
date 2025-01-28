@@ -35,6 +35,20 @@ func main() {
 
     log.Printf("Starting Unifi DNS Manager %s (%s)", Version, Commit)
 
+    // Create mux for better route handling
+    mux := http.NewServeMux()
+
+    // Health check endpoint (no middleware)
+    mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusOK)
+        json.NewEncoder(w).Encode(map[string]string{
+            "status":  "ok",
+            "version": Version,
+            "commit":  Commit,
+        })
+    })
+
     // Ensure data directory exists with correct permissions
     dataPath := filepath.Join(*dataDir)
     if err := os.MkdirAll(dataPath, 0777); err != nil {
@@ -55,51 +69,40 @@ func main() {
         log.Fatalf("Failed to initialize handler: %v", err)
     }
 
-    // Health check endpoint (must be first to avoid middleware issues)
-    http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-        w.Header().Set("Content-Type", "application/json")
-        w.WriteHeader(http.StatusOK)
-        json.NewEncoder(w).Encode(map[string]string{
-            "status":  "ok",
-            "version": Version,
-            "commit":  Commit,
-        })
-    })
-
     // Set up routes with middleware
-    http.HandleFunc("/", handlers.Chain(h.Index,
+    mux.HandleFunc("/", handlers.Chain(h.Index,
         handlers.LoggingMiddleware,
         handlers.RecoveryMiddleware,
     ))
     
-    http.HandleFunc("/setup", handlers.Chain(h.Setup,
+    mux.HandleFunc("/setup", handlers.Chain(h.Setup,
         handlers.LoggingMiddleware,
         handlers.RecoveryMiddleware,
     ))
     
-    http.HandleFunc("/login", handlers.Chain(h.Login,
+    mux.HandleFunc("/login", handlers.Chain(h.Login,
         handlers.LoggingMiddleware,
         handlers.RecoveryMiddleware,
     ))
     
-    http.HandleFunc("/logout", handlers.Chain(h.Logout,
+    mux.HandleFunc("/logout", handlers.Chain(h.Logout,
         handlers.LoggingMiddleware,
         handlers.RecoveryMiddleware,
     ))
     
-    http.HandleFunc("/onboarding", handlers.Chain(h.Onboarding,
+    mux.HandleFunc("/onboarding", handlers.Chain(h.Onboarding,
         handlers.LoggingMiddleware,
         handlers.RecoveryMiddleware,
     ))
     
-    http.HandleFunc("/api/devices", handlers.Chain(h.GetDevices,
+    mux.HandleFunc("/api/devices", handlers.Chain(h.GetDevices,
         handlers.LoggingMiddleware,
         handlers.RecoveryMiddleware,
         handlers.JSONMiddleware,
         handlers.CORSMiddleware,
     ))
     
-    http.HandleFunc("/api/devices/add", handlers.Chain(h.AddDevice,
+    mux.HandleFunc("/api/devices/add", handlers.Chain(h.AddDevice,
         handlers.LoggingMiddleware,
         handlers.RecoveryMiddleware,
         handlers.JSONMiddleware,
@@ -109,7 +112,7 @@ func main() {
     // Start server
     addr := fmt.Sprintf("0.0.0.0:%d", *port)
     log.Printf("Starting server on %s", addr)
-    if err := http.ListenAndServe(addr, nil); err != nil {
+    if err := http.ListenAndServe(addr, mux); err != nil {
         log.Fatalf("Server failed: %v", err)
     }
 }
