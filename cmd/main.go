@@ -23,6 +23,7 @@ func main() {
         port       = flag.Int("port", 52638, "Port to run the server on")
         dataDir    = flag.String("data-dir", "data", "Directory for data storage")
         debug      = flag.Bool("debug", false, "Enable debug logging")
+        templatesDir = flag.String("templates-dir", "../web/templates", "Directory containing HTML templates")
     )
     flag.Parse()
 
@@ -64,7 +65,7 @@ func main() {
     defer store.Close()
 
     // Initialize handler
-    h, err := handlers.NewHandler("web/templates", store)
+    h, err := handlers.NewHandler(*templatesDir, store)
     if err != nil {
         log.Fatalf("Failed to initialize handler: %v", err)
     }
